@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # Supabase
     SUPABASE_URL: str
-    SUPABASE_SERVICE_KEY: str
+    SUPABASE_SECRET_KEY: str  # service_role key (starts with eyJ...)
 
     # JWT
     JWT_SECRET: str

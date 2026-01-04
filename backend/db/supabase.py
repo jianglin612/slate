@@ -6,4 +6,4 @@ from config import get_settings
 @lru_cache()
 def get_supabase() -> Client:
     settings = get_settings()
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SECRET_KEY)

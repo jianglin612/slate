@@ -18,6 +18,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
   });
 
+  // Check for token in URL (OAuth callback)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    const error = params.get('error');
+
+    if (urlToken) {
+      console.log('Found token in URL, setting it');
+      api.setToken(urlToken);
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (error) {
+      console.error('Auth error:', error);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    // Use a small delay to ensure token is set before checking
+    const doCheckAuth = async () => {
+      const token = api.getToken();
+      console.log('Checking auth, token exists:', !!token);
+
+      if (!token) {
+        setState({
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+        return;
+      }
+
+      try {
+        const user = await authApi.getMe();
+        console.log('Auth check successful, user:', user);
+        setState({
+          user,
+          token,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        api.setToken(null);
+        setState({
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+      }
+    };
+
+    doCheckAuth();
+  }, []);
+
+  const login = async (provider: 'google' | 'microsoft') => {
+    try {
+      const authUrl = provider === 'google'
+        ? await authApi.loginGoogle()
+        : await authApi.loginMicrosoft();
+
+      // Redirect to OAuth provider
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore errors, we're logging out anyway
+    }
+
+    api.setToken(null);
+    setState({
+      user: null,
+      token: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+  };
+
   const checkAuth = useCallback(async () => {
     const token = api.getToken();
 
@@ -49,56 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
   }, []);
-
-  // Check for token in URL (OAuth callback)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const error = params.get('error');
-
-    if (token) {
-      api.setToken(token);
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-
-    if (error) {
-      console.error('Auth error:', error);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-
-    checkAuth();
-  }, [checkAuth]);
-
-  const login = async (provider: 'google' | 'microsoft') => {
-    try {
-      const authUrl = provider === 'google'
-        ? await authApi.loginGoogle()
-        : await authApi.loginMicrosoft();
-
-      // Redirect to OAuth provider
-      window.location.href = authUrl;
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // Ignore errors, we're logging out anyway
-    }
-
-    api.setToken(null);
-    setState({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-    });
-  };
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, checkAuth }}>

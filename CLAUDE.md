@@ -24,3 +24,36 @@ Get these from: Supabase Dashboard > Project Settings > API > Project API keys
 ## Development URLs
 - Frontend: http://localhost:5173 (or 5174 if 5173 is in use)
 - Backend: http://localhost:8000
+
+## Production Deployment
+
+**Domain:** fromslate.com (Cloudflare)
+
+### Backend (Render)
+- URL: https://api.fromslate.com
+- Deploy from: `backend/` directory
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+
+Environment variables required on Render:
+- SUPABASE_URL
+- SUPABASE_SECRET_KEY
+- JWT_SECRET
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- MICROSOFT_CLIENT_ID
+- MICROSOFT_CLIENT_SECRET
+- ANTHROPIC_API_KEY
+- BACKEND_URL=https://api.fromslate.com
+- FRONTEND_URL=https://fromslate.com
+- ENCRYPTION_KEY
+
+### Frontend (Cloudflare Pages)
+- URL: https://fromslate.com
+- Build command: `npm run build`
+- Build output: `dist`
+- Environment variable: `VITE_API_URL=https://api.fromslate.com`
+
+### DNS Configuration (Cloudflare)
+- `fromslate.com` → Cloudflare Pages
+- `api.fromslate.com` → CNAME to Render service URL

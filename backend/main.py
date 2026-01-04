@@ -38,6 +38,11 @@ app.include_router(share_router, prefix="/api/share", tags=["share"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
 
 
-@app.get("/api/health")
+@app.get("/health")
 async def health_check():
+    return {"status": "healthy"}
+
+
+@app.get("/api/health")
+async def api_health_check():
     return {"status": "healthy"}

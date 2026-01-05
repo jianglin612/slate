@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { RefreshCw, Share2, Video, Package, FileText, Zap, Plus, ChevronLeft, ChevronRight, Users, Eye, Search, Settings, Sparkles, Home, Sun, Moon, Menu, BarChart3, Send } from 'lucide-react';
+import { RefreshCw, Share2, Video, Package, FileText, Zap, Plus, ChevronLeft, ChevronRight, Users, Eye, Search, Settings, Home, Sun, Moon, Menu, BarChart3, Send } from 'lucide-react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Task, TaskCard } from './components/TaskCard';
@@ -246,9 +246,9 @@ export default function App() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={`min-h-screen ${bgClass} ${textClass} flex`}>
+      <div className={`h-screen overflow-hidden ${bgClass} ${textClass} flex`}>
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} ${isDark ? 'bg-[#1a1b1e] border-gray-800/50' : 'bg-white border-gray-200'} border-r flex-shrink-0 transition-all duration-300 flex flex-col`}>
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-16'} ${isDark ? 'bg-[#1a1b1e] border-gray-800/50' : 'bg-white border-gray-200'} border-r flex-shrink-0 transition-all duration-300 flex flex-col h-screen`}>
           {/* Logo */}
           <div className="p-4 border-b ${borderClass}">
             {sidebarOpen ? (
@@ -265,8 +265,8 @@ export default function App() {
             )}
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1">
+          {/* Navigation - Independently Scrollable */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             <button
               onClick={() => setViewMode('my-week')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
@@ -312,10 +312,18 @@ export default function App() {
               }`}
             >
               <BarChart3 className="w-5 h-5 flex-shrink-0" />
-              {sidebarOpen && <span className="text-sm font-medium">Summary</span>}
+              {sidebarOpen && <span className="text-sm font-medium">Review</span>}
             </button>
 
             <div className={`my-4 border-t ${borderClass}`}></div>
+
+            <button
+              onClick={() => setShowAIStandup(true)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDark ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-100'}`}
+            >
+              <Send className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && <span className="text-sm font-medium">Send</span>}
+            </button>
 
             <button
               onClick={() => setShowSearch(true)}
@@ -326,14 +334,38 @@ export default function App() {
               {sidebarOpen && <kbd className={`ml-auto px-1.5 py-0.5 ${isDark ? 'bg-gray-800/50 text-gray-500' : 'bg-gray-100 text-gray-500'} rounded text-xs`}>⌘K</kbd>}
             </button>
 
-            <button
-              onClick={() => setShowTemplates(true)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDark ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              <Sparkles className="w-5 h-5 flex-shrink-0" />
-              {sidebarOpen && <span className="text-sm font-medium">Templates</span>}
-              {sidebarOpen && <kbd className={`ml-auto px-1.5 py-0.5 ${isDark ? 'bg-gray-800/50 text-gray-500' : 'bg-gray-100 text-gray-500'} rounded text-xs`}>T</kbd>}
-            </button>
+            {/* Team Members Section */}
+            {sidebarOpen && (
+              <>
+                <div className={`my-4 border-t ${borderClass}`}></div>
+                <div className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Team
+                </div>
+                {/* Example team members - will be populated from backend */}
+                <button
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDark ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                    SC
+                  </div>
+                  <div className="flex flex-col items-start min-w-0">
+                    <span className="text-sm font-medium truncate">Sarah Chen</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} truncate`}>Product Manager</span>
+                  </div>
+                </button>
+                <button
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDark ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                    MJ
+                  </div>
+                  <div className="flex flex-col items-start min-w-0">
+                    <span className="text-sm font-medium truncate">Mike Johnson</span>
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} truncate`}>Engineering Lead</span>
+                  </div>
+                </button>
+              </>
+            )}
           </nav>
 
           {/* Bottom Actions */}
@@ -365,7 +397,7 @@ export default function App() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
           {/* Header */}
           <header className={`border-b ${borderClass} ${isDark ? 'bg-gradient-to-b from-[#1a1b1e] to-[#131416]' : 'bg-white'} sticky top-0 z-40 backdrop-blur-xl`}>
             <div className="px-6 py-4">
@@ -378,22 +410,6 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setShowAIStandup(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all text-sm shadow-lg shadow-green-500/20"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Send</span>
-                  </button>
-
-                  <button
-                    onClick={() => setShowAIAssistant(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-700 hover:to-pink-700 text-white rounded-xl transition-all text-sm shadow-lg shadow-orange-500/20"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>AI Assistant</span>
-                  </button>
-
                   <button
                     onClick={handleSync}
                     disabled={isSyncing}
@@ -455,14 +471,6 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <span className={isDark ? 'text-gray-500' : 'text-gray-600'}>Total</span>
                     <span className={`font-medium px-2.5 py-1 ${isDark ? 'bg-white/10 border-gray-700/50' : 'bg-gray-100 border-gray-200'} border rounded-lg`}>{stats.total}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={isDark ? 'text-gray-500' : 'text-gray-600'}>High Priority</span>
-                    <span className={`font-medium px-2.5 py-1 ${isDark ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-red-50 text-red-600 border-red-200'} border rounded-lg`}>{stats.highPriority}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={isDark ? 'text-gray-500' : 'text-gray-600'}>Due Today</span>
-                    <span className={`font-medium px-2.5 py-1 ${isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-600 border-amber-200'} border rounded-lg`}>{stats.dueToday}</span>
                   </div>
                 </div>
               </div>

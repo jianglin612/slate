@@ -19,10 +19,19 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS middleware
+# CORS middleware - allow multiple origins for production and development
+cors_origins = [
+    settings.FRONTEND_URL,
+    "http://localhost:5173",
+    "http://localhost:5174",
+]
+# Add www variant if using https
+if settings.FRONTEND_URL.startswith("https://"):
+    cors_origins.append(settings.FRONTEND_URL.replace("https://", "https://www."))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

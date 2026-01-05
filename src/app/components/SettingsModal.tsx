@@ -1,4 +1,4 @@
-import { X, Bell, Slack, Mail, Zap, Globe, Lock, FolderPlus, Trash2, Edit2, Folder } from 'lucide-react';
+import { X, Bell, Slack, Mail, Zap, Globe, Lock, FolderPlus, Trash2, Edit2, Folder, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 interface CustomCategory {
@@ -13,9 +13,10 @@ interface SettingsModalProps {
   onClose: () => void;
   customCategories?: CustomCategory[];
   onCategoriesChange?: (categories: CustomCategory[]) => void;
+  onLogout?: () => void;
 }
 
-export function SettingsModal({ isOpen, onClose, customCategories, onCategoriesChange }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, customCategories, onCategoriesChange, onLogout }: SettingsModalProps) {
   const [notifications, setNotifications] = useState({
     mentions: true,
     taskAssigned: true,
@@ -309,6 +310,29 @@ export function SettingsModal({ isOpen, onClose, customCategories, onCategoriesC
               >
                 Add Category
               </button>
+            </div>
+          </div>
+
+          {/* Account */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <LogOut className="w-5 h-5 text-red-400" />
+              <h3 className="text-white font-semibold">Account</h3>
+            </div>
+
+            <div className="bg-white/5 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white">Log out</p>
+                  <p className="text-xs text-gray-500">Sign out of your account</p>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-all border border-red-600/30"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </div>

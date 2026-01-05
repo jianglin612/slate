@@ -110,6 +110,16 @@ CREATE TABLE custom_categories (
     UNIQUE(user_id, name)
 );
 
+-- Report shares (tracking who has been invited)
+CREATE TABLE report_shares (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    report_id UUID NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    invited_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(report_id, email)
+);
+
 -- Sync history (for tracking last sync timestamps)
 CREATE TABLE sync_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -132,6 +142,7 @@ CREATE INDEX idx_reports_period ON reports(period_type, period_start);
 CREATE INDEX idx_oauth_tokens_user_provider ON oauth_tokens(user_id, provider);
 CREATE INDEX idx_comments_report_id ON comments(report_id);
 CREATE INDEX idx_reactions_report_id ON reactions(report_id);
+CREATE INDEX idx_report_shares_report_id ON report_shares(report_id);
 
 -- Updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -176,3 +187,4 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE custom_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sync_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE report_shares ENABLE ROW LEVEL SECURITY;

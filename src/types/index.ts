@@ -70,6 +70,7 @@ export interface SyncResponse {
   emails_fetched: number;
   events_fetched: number;
   suggested_tasks: SuggestedTask[];
+  ai_error?: string;
 }
 
 export interface Comment {

@@ -70,4 +70,34 @@ export const shareApi = {
       throw new Error('Failed to remove reaction');
     }
   },
+
+  // Invite methods require auth
+  invite: async (reportId: string, email: string): Promise<void> => {
+    const token = localStorage.getItem('slate_token');
+    const response = await fetch(`${API_BASE}/api/share/${reportId}/invite`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to send invite');
+    }
+  },
+
+  getInvites: async (reportId: string): Promise<{ email: string; invited_at: string }[]> => {
+    const token = localStorage.getItem('slate_token');
+    const response = await fetch(`${API_BASE}/api/share/${reportId}/invites`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      return [];
+    }
+    return response.json();
+  },
 };

@@ -1,10 +1,24 @@
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException
+import secrets
+from fastapi import APIRouter, HTTPException, Depends
 from db import get_supabase
-from db.models import CommentCreate, Comment, ReactionCreate, Reaction
+from db.models import CommentCreate, Comment, ReactionCreate, Reaction, User
+from api.middleware import get_current_user
+from services.email_service import EmailService
 from pydantic import BaseModel
+from config import get_settings
 
+settings = get_settings()
 router = APIRouter()
+
+
+class InviteCreate(BaseModel):
+    email: str
+
+
+class InviteResponse(BaseModel):
+    email: str
+    invited_at: str
 
 
 class SharedReport(BaseModel):
@@ -214,3 +228,106 @@ async def remove_reaction(share_token: str, reaction: ReactionCreate):
     ).eq("emoji", reaction.emoji).eq("task_id", reaction.task_id).execute()
 
     return {"message": "Reaction removed"}
+
+
+@router.post("/{report_id}/invite")
+async def invite_to_report(
+    report_id: str,
+    invite: InviteCreate,
+    current_user: User = Depends(get_current_user),
+):
+    """Invite someone to view a report via email."""
+    supabase = get_supabase()
+
+    # Get report and verify ownership
+    try:
+        report = (
+            supabase.table("reports")
+            .select("*, users(full_name)")
+            .eq("id", report_id)
+            .eq("user_id", current_user.id)
+            .single()
+            .execute()
+        )
+    except Exception:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    if not report.data:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Auto-publish if not already published
+    share_token = report.data.get("share_token")
+    if not report.data.get("is_published") or not share_token:
+        share_token = secrets.token_urlsafe(16)
+        supabase.table("reports").update({
+            "is_published": True,
+            "share_token": share_token,
+        }).eq("id", report_id).execute()
+
+    # Store invite in report_shares table
+    try:
+        supabase.table("report_shares").upsert({
+            "report_id": report_id,
+            "email": invite.email,
+            "invited_by": current_user.id,
+        }, on_conflict="report_id,email").execute()
+    except Exception as e:
+        # Table might not exist yet, log but continue
+        print(f"Failed to store invite: {e}")
+
+    # Send email
+    share_url = f"{settings.FRONTEND_URL}/share/{share_token}"
+    from_name = report.data.get("users", {}).get("full_name") or "Someone"
+    report_title = report.data.get("title")
+
+    email_service = EmailService()
+    email_sent = email_service.send_share_invite(
+        to_email=invite.email,
+        from_name=from_name,
+        share_url=share_url,
+        report_title=report_title,
+    )
+
+    if not email_sent:
+        raise HTTPException(status_code=500, detail="Failed to send invite email")
+
+    return {"message": "Invite sent successfully"}
+
+
+@router.get("/{report_id}/invites", response_model=List[InviteResponse])
+async def get_report_invites(
+    report_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Get list of people invited to a report."""
+    supabase = get_supabase()
+
+    # Verify report ownership
+    try:
+        report = (
+            supabase.table("reports")
+            .select("id")
+            .eq("id", report_id)
+            .eq("user_id", current_user.id)
+            .single()
+            .execute()
+        )
+    except Exception:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    if not report.data:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Get invites
+    try:
+        invites = (
+            supabase.table("report_shares")
+            .select("email, invited_at")
+            .eq("report_id", report_id)
+            .order("invited_at", desc=True)
+            .execute()
+        )
+        return invites.data
+    except Exception:
+        # Table might not exist yet
+        return []

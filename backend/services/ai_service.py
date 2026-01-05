@@ -92,22 +92,37 @@ Output format:
 ```"""
 
         response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-haiku-4-5-20251001",
             max_tokens=4096,
             messages=[{"role": "user", "content": prompt}],
         )
 
         # Parse response
         response_text = response.content[0].text
+        print(f"Claude response (first 500 chars): {response_text[:500]}")
 
-        # Extract JSON from response
+        # Extract JSON from response - strip markdown code blocks if present
+        clean_text = response_text.strip()
+        if clean_text.startswith("```"):
+            # Remove opening ```json or ```
+            first_newline = clean_text.find("\n")
+            if first_newline != -1:
+                clean_text = clean_text[first_newline + 1:]
+            # Remove closing ```
+            if clean_text.endswith("```"):
+                clean_text = clean_text[:-3].strip()
+
         try:
             # Find JSON array in response
-            start = response_text.find("[")
-            end = response_text.rfind("]") + 1
+            start = clean_text.find("[")
+            end = clean_text.rfind("]") + 1
+            print(f"JSON extraction: start={start}, end={end}")
             if start != -1 and end > start:
-                json_str = response_text[start:end]
+                json_str = clean_text[start:end]
+                print(f"JSON string length: {len(json_str)}")
+                print(f"JSON string (last 200 chars): ...{json_str[-200:]}")
                 tasks_data = json.loads(json_str)
+                print(f"Parsed {len(tasks_data)} tasks from JSON")
 
                 return [
                     SuggestedTask(
@@ -125,8 +140,14 @@ Output format:
                     )
                     for t in tasks_data
                 ]
-        except (json.JSONDecodeError, KeyError):
-            pass
+            else:
+                print("No JSON array found in response")
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"JSON parsing error: {e}")
+            # Print area around error for debugging
+            if isinstance(e, json.JSONDecodeError):
+                error_pos = e.pos
+                print(f"Error at position {error_pos}: ...{json_str[max(0,error_pos-50):error_pos+50]}...")
 
         return []
 

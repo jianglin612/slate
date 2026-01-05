@@ -179,3 +179,4 @@ class SyncResponse(BaseModel):
     emails_fetched: int
     events_fetched: int
     suggested_tasks: list[SuggestedTask]
+    ai_error: Optional[str] = None

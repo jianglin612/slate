@@ -6,7 +6,7 @@ from services.google_service import GoogleService
 from services.microsoft_service import MicrosoftService
 from services.ai_service import AIService
 from utils import decrypt_token
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,8 +39,10 @@ async def sync_data(
     if not report.data:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    period_start = report.data["period_start"]
-    period_end = report.data["period_end"]
+    # Sync 4 weeks before and 2 weeks after today
+    today = datetime.now(timezone.utc).date()
+    period_start = (today - timedelta(weeks=4)).isoformat()
+    period_end = (today + timedelta(weeks=2)).isoformat()
 
     emails = []
     events = []
@@ -140,6 +142,8 @@ async def sync_data(
 
     # Use AI to extract tasks
     suggested_tasks = []
+    ai_error = None
+    logger.info(f"Data fetched: {len(emails)} emails, {len(events)} events")
     if emails or events:
         try:
             logger.info(f"Sending {len(emails)} emails and {len(events)} events to AI for task extraction")
@@ -148,7 +152,10 @@ async def sync_data(
             logger.info(f"AI extracted {len(suggested_tasks)} tasks")
         except Exception as e:
             logger.error(f"AI task extraction failed: {e}")
+            ai_error = str(e)
             # Continue without AI suggestions rather than failing entirely
+    else:
+        logger.info("No emails or events to process - skipping AI extraction")
 
     # Record sync history
     try:
@@ -168,6 +175,7 @@ async def sync_data(
         emails_fetched=len(emails),
         events_fetched=len(events),
         suggested_tasks=suggested_tasks,
+        ai_error=ai_error,
     )
 
 

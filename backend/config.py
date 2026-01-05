@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # Encryption key for OAuth tokens
     ENCRYPTION_KEY: str
 
+    # Resend (email)
+    RESEND_API_KEY: str = ""
+
     class Config:
         env_file = ".env"
 

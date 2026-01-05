@@ -61,6 +61,12 @@ export function SyncModal({ isOpen, onClose, onComplete, onError, reportId, them
         // Make actual API call
         const response = await syncApi.sync(reportId);
 
+        // Log AI response for debugging
+        console.log('Sync response:', response);
+        if (response.ai_error) {
+          console.error('AI Error:', response.ai_error);
+        }
+
         // Wait for animation to catch up
         await animationPromise;
 

@@ -40,7 +40,7 @@ type Theme = 'dark' | 'light';
 type SummaryPeriod = 'monthly' | 'quarterly' | 'yearly';
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [periodType, setPeriodType] = useState<PeriodType>('weekly');
   const [currentWeek, setCurrentWeek] = useState(0);
 
@@ -100,15 +100,19 @@ export default function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in input fields
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setShowSearch(true);
       }
-      if (e.key === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (e.key === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping) {
         e.preventDefault();
         setEditingTask({} as Task);
       }
-      if (e.key === 't' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (e.key === 't' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping) {
         e.preventDefault();
         setShowTemplates(true);
       }
@@ -426,7 +430,7 @@ export default function App() {
                     className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all text-sm shadow-lg shadow-blue-500/20"
                   >
                     <Share2 className="w-4 h-4" />
-                    <span>Publish</span>
+                    <span>Share</span>
                   </button>
                 </div>
               </div>
@@ -828,6 +832,7 @@ export default function App() {
           onClose={() => setShowSettings(false)}
           customCategories={customCategories}
           onCategoriesChange={setCustomCategories}
+          onLogout={logout}
         />
         <SearchBar
           isOpen={showSearch}

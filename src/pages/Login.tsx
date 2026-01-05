@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function Login() {
@@ -101,7 +102,14 @@ export function Login() {
           </div>
 
           <p className="mt-6 text-center text-sm text-slate-500">
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By signing in, you agree to our{' '}
+            <Link to="/terms" className="text-slate-400 hover:text-white underline">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="text-slate-400 hover:text-white underline">
+              Privacy Policy
+            </Link>
           </p>
         </div>
 

@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import App from './app/App';
 import { Login } from './pages/Login';
 import { SharedReport } from './pages/SharedReport';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { TermsOfService } from './pages/TermsOfService';
 import './styles/index.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,6 +43,8 @@ function AppRoutes() {
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
       />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="/share/:token" element={<SharedReport />} />
       <Route
         path="/*"

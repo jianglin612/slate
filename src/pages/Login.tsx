@@ -136,16 +136,22 @@ export function Login() {
                 </button>
               </div>
 
-              <p className="mt-6 text-center text-sm text-slate-500">
-                By signing in, you agree to our{' '}
-                <Link to="/terms" className="text-slate-400 hover:text-white underline">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy" className="text-slate-400 hover:text-white underline">
-                  Privacy Policy
-                </Link>
-              </p>
+              <div className="mt-6 text-center text-sm text-slate-500">
+                <p className="mb-3">
+                  Slate requests read-only access to your email and calendar to extract tasks.
+                  We never send emails or modify your data.
+                </p>
+                <p>
+                  By signing in, you agree to our{' '}
+                  <Link to="/terms" className="text-slate-400 hover:text-white underline">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" className="text-slate-400 hover:text-white underline">
+                    Privacy Policy
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>
